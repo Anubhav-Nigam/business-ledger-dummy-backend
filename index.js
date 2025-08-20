@@ -87,8 +87,10 @@ app.post('/api/auth/login', (req, res) => {
     return res.json({ 
       message: 'Login successful', 
       token,
-      name: user.name,
-      email: user.email
+      user: {
+        name: user.name,
+        email: user.email
+      }
     });
   }
 
