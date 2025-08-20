@@ -78,13 +78,21 @@ app.post('/api/auth/login', (req, res) => {
   const user = users.find(u => u.email === email && u.password === password);
 
   if (user) {
-        // Create JWT payload
-    const token = jwt.sign({ email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '1h' });
-    return res.json({ message: 'Login successful', token });
+    const token = jwt.sign(
+      { email: user.email, name: user.name }, 
+      JWT_SECRET, 
+      { expiresIn: '1h' }
+    );
+
+    return res.json({ 
+      message: 'Login successful', 
+      token,
+      name: user.name,
+      email: user.email
+    });
   }
 
-  // Invalid credentials
-  return res.status(401).json({ error: 'Invalid email or password' });
+  res.status(401).json({ error: 'Invalid email or password' });
 });
 
 // Example protected route
