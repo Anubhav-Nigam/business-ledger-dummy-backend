@@ -33,15 +33,37 @@ app.get('/', (req, res) => {
 //     data: req.body
 //   });
 // });
-
-// Dummy user (hardcoded for demo)
-const DUMMY_USER = {
-  email: 'test@example.com',
-  password: 'password123',
-};
+// 🗂️ In-memory users array (dummy DB)
+const users = [
+  { name: 'Test User', email: 'test@example.com', password: 'password123' }
+];
 
 // Secret key for signing JWT (in real apps, keep this in .env)
 const JWT_SECRET = 'supersecretkey';
+
+// 🔹 Register route
+app.post('/api/auth/register', (req, res) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: 'Name, email, and password are required' });
+  }
+
+  // Check if email already exists
+  const existingUser = users.find(user => user.email === email);
+  if (existingUser) {
+    return res.status(400).json({ error: 'Email already registered' });
+  }
+
+  // Add user to dummy "DB"
+  const newUser = { name, email, password };
+  users.push(newUser);
+
+  return res.json({
+    message: 'User registered successfully',
+    user: { name, email }
+  });
+});
 
 // Login route
 app.post('/api/auth/login', (req, res) => {
@@ -51,19 +73,14 @@ app.post('/api/auth/login', (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
+  
+  // Find user in dummy "DB"
+  const user = users.find(u => u.email === email && u.password === password);
 
-  // Check against dummy data
-  if (email === DUMMY_USER.email && password === DUMMY_USER.password) {
-    // Create JWT payload
-    const payload = { email };
-
-    // Sign JWT (expires in 1h)
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
-
-    return res.json({
-      message: 'Login successful',
-      token,
-    });
+  if (user) {
+        // Create JWT payload
+    const token = jwt.sign({ email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '1h' });
+    return res.json({ message: 'Login successful', token });
   }
 
   // Invalid credentials
